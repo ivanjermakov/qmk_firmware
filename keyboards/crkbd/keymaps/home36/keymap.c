@@ -37,19 +37,20 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define SFT_ENT KC_SFTENT
 
 enum custom_keycodes {
-		    BSPC_DEL = SAFE_RANGE,
+	BSPC_DEL = SAFE_RANGE,
+    OLED_TOG
 };
 
 enum work40_layers {
-    _QWE = 0,
-    _NAV = 1,
-    _DGS = 2,
-    _FNS = 3,
-    _BRS = 4,
-    _SY1 = 5,
-    _SY2 = 6,
-    _SYS = 7,
-    _BLK = 8
+    _QWE,
+    _NAV,
+    _DGS,
+    _FNS,
+    _BRS,
+    _SY1,
+    _SY2,
+    _SYS,
+    _BLK
 };
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
@@ -142,7 +143,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   //,--------------------------------------------.                    ,--------------------------------------------.
       _______, _______, KC_BRIU, KC_VOLU, RGB_TOG,                      _______, RGB_VAI, RGB_SAI, RGB_HUI, KC_PSCR,
   //|--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------|
-      _______, _______, KC_BRIU, KC_VOLD, _______,                      _______, RGB_VAD, RGB_SAD, RGB_HUD, _______,
+      _______,OLED_TOG, KC_BRIU, KC_VOLD, _______,                      _______, RGB_VAD, RGB_SAD, RGB_HUD, _______,
   //|--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------|
       _______, _______, _______, KC_MUTE, RGB_M_B,                      RGB_MOD, _______, _______, _______, _______,
   //|--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+--------|
@@ -166,6 +167,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
 
 #ifdef OLED_DRIVER_ENABLE
+static bool oled_enabled = false;
 
 oled_rotation_t oled_init_user(oled_rotation_t rotation) {
     if (!is_master) {
@@ -179,8 +181,13 @@ void oled_render_logo(void) {
     oled_write_P(crkbd_logo, false);
 }
 
-void oled_task_user(void) {
-    oled_render_logo();
+void toggle_oled(void) {
+    if (oled_enabled) {
+        oled_clear();
+    } else {
+        oled_render_logo();
+    }
+    oled_enabled = !oled_enabled;
 }
 
 #endif  // OLED_DRIVER_ENABLE
@@ -212,6 +219,13 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 unregister_code(KC_BSPC);
             }
             return false;
+#ifdef OLED_DRIVER_ENABLE
+        case OLED_TOG:
+            if (record->event.pressed) {
+                toggle_oled();
+            }
+            break;
+#endif
 	}
 	return true;
 }
